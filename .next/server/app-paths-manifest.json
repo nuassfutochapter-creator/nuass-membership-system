@@ -1,6 +1,9 @@
 {
+  "/page": "app/page.js",
   "/executives/page": "app/executives/page.js",
-  "/about/page": "app/about/page.js",
-  "/login/page": "app/login/page.js",
-  "/admin/login/page": "app/admin/login/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/attendance/page": "app/dashboard/attendance/page.js",
+  "/dashboard/directory/page": "app/dashboard/directory/page.js",
+  "/dashboard/announcements/page": "app/dashboard/announcements/page.js",
+  "/dashboard/profile/page": "app/dashboard/profile/page.js"
 }

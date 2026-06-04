@@ -8,9 +8,15 @@ const nextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lwlsjssuqnelbfluglmk.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
-  experimental: {
-    serverExternalPackages: ['bcryptjs'],
-  },
+  serverExternalPackages: ['bcryptjs'],
 }
+
+module.exports = nextConfig
