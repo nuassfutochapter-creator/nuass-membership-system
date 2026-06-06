@@ -21,13 +21,14 @@ async function getMemberAttendance(id: string) {
   return data || []
 }
 
-export default async function MemberDetailPage({ params }: { params: { id: string } }) {
+export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
+ const { id } = await params
   const [member, attendance] = await Promise.all([
-    getMember(params.id),
-    getMemberAttendance(params.id),
+    getMember(id),
+    getMemberAttendance(id),
   ])
 
   if (!member) notFound()
