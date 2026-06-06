@@ -22,7 +22,8 @@ async function getMemberAttendance(id: string) {
 }
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getAdminSession()
+  const session = await getAdminSession()  
+  const { id } = await params
   if (!session) redirect('/admin/login')
 
  const { id } = await params
