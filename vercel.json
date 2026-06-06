@@ -6,9 +6,9 @@
   "devCommand": "next dev",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@nuass_supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@nuass_supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@nuass_service_role_key",
-    "JWT_SECRET": "@nuass_jwt_secret"
+    "NEXT_PUBLIC_SUPABASE_URL": "nuass_supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "nuass_supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "nuass_service_role_key",
+    "JWT_SECRET": "nuass_jwt_secret"
   }
 }
