@@ -22,11 +22,11 @@ async function getMemberAttendance(id: string) {
 }
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getAdminSession()  
-  const { id } = await params
+  const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
- const { id } = await params
+  const { id } = await params
+
   const [member, attendance] = await Promise.all([
     getMember(id),
     getMemberAttendance(id),
@@ -47,7 +47,6 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Photo + status */}
         <div className="nuass-card p-6 text-center">
           <div className="relative w-28 h-28 mx-auto mb-4">
             {member.passport_url ? (
@@ -60,7 +59,6 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
           </div>
           <h2 className="font-display font-bold text-gray-900 text-lg">{member.full_name}</h2>
           <p className="font-mono text-nuass-green text-sm font-semibold">{member.nuass_id}</p>
-          
           <div className="mt-3">
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${
               member.membership_status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
@@ -72,23 +70,19 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
               {member.membership_status}
             </span>
           </div>
-
           <p className="text-xs text-gray-400 mt-3">Registered {formatDate(member.created_at)}</p>
-
-          {/* Quick verify action */}
           <div className="mt-4 space-y-2">
             <VerifyMemberButton memberId={member.id} currentStatus={member.membership_status} adminName={session.full_name} adminRole={session.role} />
           </div>
         </div>
 
-        {/* Right: Details */}
         <div className="lg:col-span-2 space-y-4">
           <div className="nuass-card p-5">
             <h3 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wider text-gray-500">Personal</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               {[
                 ['Gender', member.gender],
-                ['Date of Birth', member.date_of_birth ? formatDate(member.date_of_birth) : 'N/A'],
+                ['Date of Birth', member.date_of_birth ? formatDate(member.date_of_birth) : 'NA'],
                 ['WhatsApp', member.whatsapp_number],
                 ['Email', member.email || 'Not provided'],
               ].map(([label, val]) => (
@@ -117,7 +111,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
           </div>
 
           <div className="nuass-card p-5">
-            <h3 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wider text-gray-500">Anambra Origin & Residence</h3>
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wider text-gray-500">Origin and Residence</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               {[
                 ['LGA', member.lga],
@@ -143,7 +137,6 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
         </div>
       </div>
 
-      {/* Attendance History */}
       <div className="nuass-card overflow-hidden">
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Attendance History ({attendance.length} meetings)</h3>
@@ -158,7 +151,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                 {attendance.map((att: any) => (
                   <tr key={att.id}>
                     <td className="font-medium">{att.meeting?.meeting_name || 'Unknown'}</td>
-                    <td className="text-xs text-gray-500">{att.meeting?.meeting_date ? formatDate(att.meeting.meeting_date) : 'N/A'}</td>
+                    <td className="text-xs text-gray-500">{att.meeting?.meeting_date ? formatDate(att.meeting.meeting_date) : 'NA'}</td>
                     <td className="text-xs text-gray-400">{formatDateTime(att.attendance_time)}</td>
                   </tr>
                 ))}
