@@ -47,3 +47,5 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: 'Failed to create' }, { status: 500 })
   return NextResponse.json({ meeting: data }, { status: 201 })
 }
+
+export const dynamic = "force-dynamic"

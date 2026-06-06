@@ -72,3 +72,5 @@ export async function POST(req: NextRequest) {
   if (insertError) return NextResponse.json({ error: 'Failed to mark attendance' }, { status: 500 })
   return NextResponse.json({ success: true, meeting_name: meeting.meeting_name })
 }
+
+export const dynamic = "force-dynamic"

@@ -6,3 +6,5 @@ export async function POST() {
   await clearAdminSession()
   return NextResponse.json({ success: true })
 }
+
+export const dynamic = "force-dynamic"

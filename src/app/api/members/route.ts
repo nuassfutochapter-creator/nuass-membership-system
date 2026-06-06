@@ -50,3 +50,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ members: data, total: count || 0, page, limit })
 }
+
+export const dynamic = "force-dynamic"
