@@ -105,3 +105,4 @@ export default async function ExecutivesPage() {
     </div>
   )
 }
+export const dynamic = "force-dynamic"

@@ -54,3 +54,4 @@ export default async function AnnouncementsPage() {
     </div>
   )
 }
+export const dynamic = "force-dynamic"
