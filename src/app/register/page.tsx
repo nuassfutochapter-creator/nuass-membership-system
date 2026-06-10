@@ -39,11 +39,18 @@ const registrationSchema = z.object({
 type FormData = z.infer<typeof registrationSchema>
 
 const FACULTIES = [
-  'Faculty of Agriculture', 'Faculty of Arts', 'Faculty of Basic Medical Sciences',
-  'Faculty of Education', 'Faculty of Engineering', 'Faculty of Environmental Sciences',
-  'Faculty of Law', 'Faculty of Management Sciences', 'Faculty of Medicine',
-  'Faculty of Pharmaceutical Sciences', 'Faculty of Physical Sciences',
-  'Faculty of Social Sciences', 'Faculty of Veterinary Medicine',
+  'School of Electrical Systems & Engineering Technology (SESET)',
+  'School of Basic Medical Sciences (SBMS)',
+  'College of Medicine (COM)',
+  'Ce-Sustainable Procurement, Environmental & Social Standards (CESS)',
+  'School of Engineering & Engineering Technology (SEET)',
+  'School of Physical Sciences (SPS)',
+  'School of Biological Sciences (SBS)',
+  'School of Agriculture & Agricultural Technology (SAAT)',
+  'School of Information & Communication Technology (SICT)',
+  'School of Environmental Sciences (SES)',
+  'School of Logistics & Innovation Technology (SLIT)',
+  'School of Health Technology (SHT)',
 ]
 
 const steps = [

@@ -1,20 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { Crown, Plus, Edit2, Trash2, X, Upload, User } from 'lucide-react'
+import { Crown, Plus, Edit2, Trash2, X, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { EXECUTIVE_POSITIONS } from '@/types'
-
-const emptyForm = { full_name: '', position: '', department: '', level: '', bio: '', display_order: 0, photo_file: null as File | null, photo_preview: '' }
 
 export default function AdminExecutivesPage() {
   const [executives, setExecutives] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<any | null>(null)
-  const [form, setForm] = useState({ ...emptyForm })
+  const [form, setForm] = useState({ full_name: '', position: '', department: '', level: '', bio: '', display_order: 0 })
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState('')
   const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const fetch_ = async () => {
     const res = await fetch('/api/executives')
@@ -27,13 +28,17 @@ export default function AdminExecutivesPage() {
 
   const openCreate = () => {
     setEditItem(null)
-    setForm({ ...emptyForm })
+    setForm({ full_name: '', position: '', department: '', level: '', bio: '', display_order: 0 })
+    setPhotoFile(null)
+    setPhotoPreview('')
     setShowForm(true)
   }
 
   const openEdit = (exec: any) => {
     setEditItem(exec)
-    setForm({ full_name: exec.full_name, position: exec.position, department: exec.department, level: exec.level || '', bio: exec.bio || '', display_order: exec.display_order || 0, photo_file: null, photo_preview: exec.photo_url || '' })
+    setForm({ full_name: exec.full_name, position: exec.position, department: exec.department, level: exec.level || '', bio: exec.bio || '', display_order: exec.display_order || 0 })
+    setPhotoFile(null)
+    setPhotoPreview(exec.photo_url || '')
     setShowForm(true)
   }
 
@@ -41,35 +46,47 @@ export default function AdminExecutivesPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 3 * 1024 * 1024) { toast.error('Image too large (max 3MB)'); return }
+    setPhotoFile(file)
     const reader = new FileReader()
-    reader.onloadend = () => setForm(f => ({ ...f, photo_file: file, photo_preview: reader.result as string }))
+    reader.onloadend = () => setPhotoPreview(reader.result as string)
     reader.readAsDataURL(file)
+    toast.success('Photo ready: ' + file.name)
   }
 
   const handleSave = async () => {
     if (!form.full_name.trim() || !form.position || !form.department.trim()) {
-      toast.error('Name, position, and department are required'); return
+      toast.error('Name, position, and department are required')
+      return
     }
     setSaving(true)
     try {
       const fd = new FormData()
-      fd.append('full_name', form.full_name)
+      fd.append('full_name', form.full_name.trim())
       fd.append('position', form.position)
-      fd.append('department', form.department)
+      fd.append('department', form.department.trim())
       fd.append('level', form.level)
       fd.append('bio', form.bio)
       fd.append('display_order', String(form.display_order))
-      if (form.photo_file) fd.append('photo', form.photo_file)
       if (editItem) fd.append('id', editItem.id)
-
+      if (photoFile) {
+        fd.append('photo', photoFile)
+        console.log('Photo attached:', photoFile.name, photoFile.size)
+      }
       const res = await fetch('/api/executives', { method: editItem ? 'PUT' : 'POST', body: fd })
       const data = await res.json()
+      console.log('Response:', data)
       if (!res.ok) { toast.error(data.error || 'Failed'); return }
       toast.success(editItem ? 'Executive updated!' : 'Executive added!')
       setShowForm(false)
+      setPhotoFile(null)
+      setPhotoPreview('')
       fetch_()
-    } catch { toast.error('Error saving') }
-    finally { setSaving(false) }
+    } catch (err) {
+      console.error(err)
+      toast.error('Error saving')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -93,7 +110,6 @@ export default function AdminExecutivesPage() {
         </button>
       </div>
 
-      {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 my-4">
@@ -102,29 +118,43 @@ export default function AdminExecutivesPage() {
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
             </div>
 
-            {/* Photo Upload */}
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 flex-shrink-0">
-                {form.photo_preview
-                  ? <img src={form.photo_preview} alt="Preview" className="w-full h-full object-cover" />
+              <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300 flex-shrink-0">
+                {photoPreview
+                  ? <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                   : <User size={28} className="text-gray-400" />}
               </div>
               <div>
-                <label className="cursor-pointer btn-primary text-sm px-3 py-2 rounded-lg">
-                  <Upload size={14} className="inline mr-1" /> Upload Photo
-                  <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-                </label>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="bg-nuass-green text-white text-sm px-4 py-2 rounded-lg hover:bg-nuass-green-mid transition-colors"
+                >
+                  {photoFile ? '✓ ' + photoFile.name.substring(0, 20) : 'Choose Photo'}
+                </button>
+                {photoFile && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Size: {Math.round(photoFile.size / 1024)}KB
+                  </p>
+                )}
                 <p className="text-xs text-gray-400 mt-1">Max 3MB, JPG/PNG</p>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-              <input value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} className="nuass-input" placeholder="Executive's full name" />
+              <input value={form.full_name} onChange={e => setForm(f => ({...f, full_name: e.target.value}))} className="nuass-input" placeholder="Executive full name" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
-              <select value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} className="nuass-input">
+              <select value={form.position} onChange={e => setForm(f => ({...f, position: e.target.value}))} className="nuass-input">
                 <option value="">Select position</option>
                 {EXECUTIVE_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
@@ -132,20 +162,20 @@ export default function AdminExecutivesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                <input value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} className="nuass-input" placeholder="e.g. Computer Science" />
+                <input value={form.department} onChange={e => setForm(f => ({...f, department: e.target.value}))} className="nuass-input" placeholder="Department" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-                <input value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))} className="nuass-input" placeholder="e.g. 400 Level" />
+                <input value={form.level} onChange={e => setForm(f => ({...f, level: e.target.value}))} className="nuass-input" placeholder="400 Level" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Short Bio</label>
-              <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} className="nuass-input min-h-[80px] resize-y" placeholder="Brief description..." />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+              <textarea value={form.bio} onChange={e => setForm(f => ({...f, bio: e.target.value}))} className="nuass-input min-h-[80px] resize-y" placeholder="Short bio..." />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-              <input type="number" value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: Number(e.target.value) }))} className="nuass-input" placeholder="0 = first" />
+              <input type="number" value={form.display_order} onChange={e => setForm(f => ({...f, display_order: Number(e.target.value)}))} className="nuass-input" />
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm">Cancel</button>
@@ -157,14 +187,10 @@ export default function AdminExecutivesPage() {
         </div>
       )}
 
-      {/* Grid */}
       {loading ? (
-        <div className="text-center py-12"><div className="spinner mx-auto" style={{ borderColor: 'rgba(13,92,46,0.2)', borderTopColor: '#0d5c2e' }} /></div>
+        <div className="text-center py-12"><div className="spinner mx-auto" style={{borderColor: 'rgba(13,92,46,0.2)', borderTopColor: '#0d5c2e'}} /></div>
       ) : executives.length === 0 ? (
-        <div className="nuass-card p-12 text-center text-gray-400">
-          <Crown size={48} className="mx-auto mb-3 opacity-20" />
-          <p>No executives added yet.</p>
-        </div>
+        <div className="nuass-card p-12 text-center text-gray-400"><Crown size={48} className="mx-auto mb-3 opacity-20" /><p>No executives added yet.</p></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {executives.map((exec: any) => (
