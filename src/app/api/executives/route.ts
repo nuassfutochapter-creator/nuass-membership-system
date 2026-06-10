@@ -1,6 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin, uploadExecutivePhoto } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { getAdminSession } from '@/lib/auth'
+
+export const dynamic = 'force-dynamic'
+
+async function uploadPhoto(file: File, id: string): Promise<string | null> {
+  try {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `exec-${id}-${Date.now()}.${fileExt}`
+    const filePath = `executives/${fileName}`
+
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const { data, error } = await supabaseAdmin.storage
+      .from('member-photos')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: true,
+      })
+
+    if (error) {
+      console.error('Storage upload error:', error)
+      return null
+    }
+
+    const { data: urlData } = supabaseAdmin.storage
+      .from('member-photos')
+      .getPublicUrl(filePath)
+
+    return urlData.publicUrl
+  } catch (err) {
+    console.error('Upload exception:', err)
+    return null
+  }
+}
 
 export async function GET() {
   const { data: executives, error } = await supabaseAdmin
@@ -37,8 +72,13 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: 'Failed to create' }, { status: 500 })
 
   if (photoFile && photoFile.size > 0) {
-    const photo_url = await uploadExecutivePhoto(photoFile, exec.id)
-    if (photo_url) await supabaseAdmin.from('executives').update({ photo_url }).eq('id', exec.id)
+    console.log('Uploading photo for:', exec.id, 'Size:', photoFile.size)
+    const photo_url = await uploadPhoto(photoFile, exec.id)
+    console.log('Photo URL:', photo_url)
+    if (photo_url) {
+      await supabaseAdmin.from('executives').update({ photo_url }).eq('id', exec.id)
+      exec.photo_url = photo_url
+    }
   }
 
   return NextResponse.json({ executive: exec }, { status: 201 })
@@ -63,7 +103,9 @@ export async function PUT(req: NextRequest) {
 
   const photoFile = formData.get('photo') as File | null
   if (photoFile && photoFile.size > 0) {
-    const photo_url = await uploadExecutivePhoto(photoFile, id)
+    console.log('Uploading photo for update:', id, 'Size:', photoFile.size)
+    const photo_url = await uploadPhoto(photoFile, id)
+    console.log('Photo URL:', photo_url)
     if (photo_url) updates.photo_url = photo_url
   }
 
@@ -84,5 +126,3 @@ export async function DELETE(req: NextRequest) {
   if (error) return NextResponse.json({ error: 'Failed to remove' }, { status: 500 })
   return NextResponse.json({ success: true })
 }
-
-export const dynamic = "force-dynamic"
